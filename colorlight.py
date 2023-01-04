@@ -43,7 +43,7 @@ class Led:
         return self.RED, self.GREEN, self.BLUE
 
     def get_brightness(self):
-        return self.FREQ
+        return self.BRIGHT
 
     def set_status(self, switch):
         self.IS_ON = switch

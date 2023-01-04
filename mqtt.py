@@ -34,9 +34,9 @@ def on_message(mqtt_client, userdata, msg):
 
 
 # log off handler
-def signal_handler(frame):
+def signal_handler():
     # "logoff" before disconnect
-    mqtt.disconnect()
+    mqtt.Client.disconnect(client)
     time.sleep(2)
     sys.exit(0)
 
