@@ -9,7 +9,7 @@ MQTT_USER = ''
 MQTT_PASSWORD = ''
 
 # Topics
-MQTT_TOPIC_BASE = 'light'
+MQTT_TOPIC_BASE = 'lights'
 
 #
 PORT_RED = 17  # GPIO port for red

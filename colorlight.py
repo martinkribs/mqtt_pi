@@ -1,14 +1,15 @@
 import config
 # import RPi.GPIO as GPIO
-# import VPi.GPIO as GPIO
+import VPi.GPIO as GPIO
 
 
 class Led:
-    RED = config.PORT_RED  # GPIO port for red
-    GREEN: int = config.PORT_GREEN  # GPIO port for green
-    BLUE = config.PORT_BLUE  # GPIO port for blue
-    FREQ = config.FREQ  # Frequency for PWM
+    # Color values
+    RED = 0
+    GREEN = 0
+    BLUE = 0
     IS_ON = False
+    BRIGHT = config.FREQ
 
     def __init__(self):
 
@@ -18,18 +19,41 @@ class Led:
         GPIO.setmode(GPIO.BCM)
 
         # set color ports as outputs
-        GPIO.setup(self.RED, GPIO.OUT)
-        GPIO.setup(self.GREEN, GPIO.OUT)
-        GPIO.setup(self.BLUE, GPIO.OUT)
+        GPIO.setup(config.PORT_RED, GPIO.OUT)
+        GPIO.setup(config.PORT_GREEN, GPIO.OUT)
+        GPIO.setup(config.PORT_BLUE, GPIO.OUT)
+
+        # create objects for PWM on color output ports
+        self.RED_PWM = GPIO.PWM(config.PORT_RED, self.BRIGHT)
+        self.GREEN_PWM = GPIO.PWM(config.PORT_GREEN, self.BRIGHT)
+        self.BLUE_PWM = GPIO.PWM(config.PORT_BLUE, self.BRIGHT)
 
     # cleanup PWM and GPIO environment
     def __del__(self):
         print('cleaning up')
+        self.RED_PWM.stop()
+        self.GREEN_PWM.stop()
+        self.BLUE_PWM.stop()
         GPIO.cleanup()
 
-    # method to start the pwm
-    def start(self):
-        self.set_color(0, 0, 0)
+    def get_status(self):
+        return self.IS_ON
+
+    def get_color(self):
+        return self.RED, self.GREEN, self.BLUE
+
+    def get_brightness(self):
+        return self.FREQ
+
+    def set_status(self, switch):
+        self.IS_ON = switch
+        # switch lights off (color = [0, 0, 0]), but keep actual color in mind
+        if switch:
+            self.change(self.RED, self.GREEN, self.BLUE)
+        elif not switch:
+            self.change(0, 0, 0)
+        else:
+            print('switch is not boolean')
 
     def set_color(self, red_in, green_in, blue_in):
         # update internal color values
@@ -40,30 +64,25 @@ class Led:
             self.IS_ON = False
         else:
             self.IS_ON = True
-        self.change_color(red_in, green_in, blue_in)
+        self.change(red_in, green_in, blue_in)
         return True
 
-    def set_on(self, switch):
-        self.IS_ON = switch
-        # switch lights off (color = [0, 0, 0]), but keep actual color in mind
-        if switch:
-            self.change_color(self.RED, self.GREEN, self.BLUE)
-        elif not switch:
-            self.change_color(0, 0, 0)
-        else:
-            print('switch is not boolean')
+    def set_brightness(self, brightness_in):
+        self.BRIGHT = brightness_in
+        return True
 
-    def is_on(self):
-        return self.IS_ON
+        # method to start the pwm
 
-    def change_color(self, red_in, green_in, blue_in):
-        self._red_pwm.ChangeDutyCycle(red_in * 100.0 / 255.0)
-        self._green_pwm.ChangeDutyCycle(green_in * 100.0 / 255.0)
-        self._blue_pwm.ChangeDutyCycle(blue_in * 100.0 / 255.0)
+    def start(self):
+        self.RED_PWM.start(0)
+        self.GREEN_PWM.start(0)
+        self.BLUE_PWM.start(0)
+        self.set_color(0, 0, 0)
 
-    def print_color(self):
-        print("r g b :", self.RED, self.GREEN, self.BLUE)
-
-    def get_color(self):
-        print(self.RED, self.GREEN, self.BLUE)
-        return [self.RED, self.GREEN, self.BLUE]
+    def change(self, red_in, green_in, blue_in):
+        # keep self values, just modify output values
+        # change pwm duty cycles
+        # calculate from 0..255 to 0..100%
+        self.RED_PWM.ChangeDutyCycle(red_in * 100.0 / 255.0)
+        self.GREEN_PWM.ChangeDutyCycle(green_in * 100.0 / 255.0)
+        self.BLUE_PWM.ChangeDutyCycle(blue_in * 100.0 / 255.0)
