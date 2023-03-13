@@ -1,6 +1,6 @@
 import config
-# import RPi.GPIO as GPIO
-import VPi.GPIO as GPIO
+import RPi.GPIO as GPIO
+# import VPi.GPIO as GPIO
 
 
 class Led:
